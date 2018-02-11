@@ -1,4 +1,5 @@
-(ns tunnit.core)
+(ns tunnit.core
+  (:gen-class))
 
 (use 'clojure.java.io)
 (use '[clojure.string :only (split)])
@@ -32,7 +33,7 @@
 (defn filterEmptyRows [entries]
   (filter #(false? (nil? (:projectCode %))) entries))
 
-(defn getTotalTime [totalMinutes]
+(defn formatTime [totalMinutes]
   (str (quot totalMinutes 60) " h " (mod totalMinutes 60) " min"))
 
 (defn calculateDiff [workdays totalMinutes]
@@ -43,8 +44,8 @@
     (let [entries (filterEmptyRows (map processLine (line-seq rdr)))
           totalMinutes (apply + (map :time entries))
           workdays (count (distinct (map :date entries)))
-          diff (getTotalTime (calculateDiff workdays (+ initialDiff totalMinutes)))]
-        (println (str "Total worktime: " (getTotalTime totalMinutes)))
+          diff (formatTime (calculateDiff workdays (+ initialDiff totalMinutes)))]
+        (println (str "Total worktime: " (formatTime totalMinutes)))
         (println (str "Difference: " diff)))))
 
 (defn -main [& args]
