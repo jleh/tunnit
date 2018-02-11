@@ -57,8 +57,7 @@
 (defn print-day-stats [day-stats]
   (doseq [item day-stats]
     (println
-      (str (:date item) "\t" (formatTime (:worktime item)) "\t"
-           (when (neg? (:diff item)) (str "-")) (formatTime (:diff item))))))
+      (str (:date item) "\t" (formatTime (:worktime item)) "\t" (formatTime (:diff item))))))
 
 (defn readFile [filename initialDiff]
   (with-open [rdr (reader filename)]
@@ -69,10 +68,7 @@
         (print-day-stats (getStatsForDays (distinct (map :date entries)) entries))
         (println)
         (println (str "Total worktime: " (formatTime totalMinutes)))
-        (println (str
-                   "Difference: "
-                   (when (neg? diff) (str "-"))
-                   (formatTime diff) " (" diff " min)")))))
+        (println (str "Difference: " (formatTime diff) " (" diff " min)")))))
 
 (defn -main [& args]
   (let [file (:file (:options (parse-opts args cli-options)))
