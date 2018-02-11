@@ -5,7 +5,8 @@
                  [org.clojure/tools.cli "0.3.5"]]
   :main tunnit.core
   :aot [tunnit.core]
-  :profiles {:dev {:dependencies [[midje "1.9.1"]]}
+  :profiles {:dev {:dependencies [[midje "1.9.1"]]
+                   :plugins [[lein-midje "3.2.1"]]}
              ;; You can add dependencies that apply to `lein midje` below.
              ;; An example would be changing the logging destination for test runs.
              :midje {}})

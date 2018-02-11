@@ -39,6 +39,13 @@
 (defn calculateDiff [workdays totalMinutes]
   (- totalMinutes (* workdays 450)))
 
+(defn getDayStats [date entries]
+  (let [worktime (apply + (map :time (filter #(= date (:date %)) entries)))]
+    (zipmap [:worktime :diff] [worktime (- worktime 450)])))
+
+(defn getStatsForDays [dates entries]
+  (map #(getDayStats % entries) dates))
+
 (defn readFile [filename initialDiff]
   (with-open [rdr (reader filename)]
     (let [entries (filterEmptyRows (map processLine (line-seq rdr)))
@@ -46,7 +53,8 @@
           workdays (count (distinct (map :date entries)))
           diff (formatTime (calculateDiff workdays (+ initialDiff totalMinutes)))]
         (println (str "Total worktime: " (formatTime totalMinutes)))
-        (println (str "Difference: " diff)))))
+        (println (str "Difference: " diff))
+        (println (getStatsForDays  (distinct (map :date entries)) entries)))))
 
 (defn -main [& args]
   (let [file (:file (:options (parse-opts args cli-options)))
