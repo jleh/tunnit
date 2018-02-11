@@ -80,14 +80,17 @@
         non-billed (non-billed-hours projects)]
     (format "%.2f" (float (* 100 (/ billed (+ billed non-billed)))))))
 
+(defn get-total-minutes [entries]
+  (apply + (map :time entries)))
+
 (defn read-file [filename initial-diff]
   (with-open [rdr (reader filename)]
     (let [entries (filter-empty-rows (map process-line (line-seq rdr)))
-          total-minutes (apply + (map :time entries))
+          total-minutes (get-total-minutes entries)
           workdays (count (distinct (map :date entries)))
           diff (+ initial-diff (calculate-diff workdays total-minutes))
           projects (project-hours (distinct (map :project-code entries)) entries)]
-        (print-day-stats (get-stats-for-day (distinct (map :date entries)) entries))
+        (print-day-stats (get-stats-for-day workdays entries))
         (println)
         (println (str "Billed hours: " (billed-percentage projects)) " %")
         (println (str "Total worktime: " (format-time total-minutes)))

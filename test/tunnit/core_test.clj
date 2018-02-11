@@ -32,6 +32,16 @@
     (get-day-stats "2018-02-01" (sample-data)) => {:date "2018-02-01" :worktime 450 :diff 0}
     (get-day-stats "2018-02-02" (sample-data)) => {:date "2018-02-02" :worktime 100 :diff -350}
     (get-day-stats "2018-02-03" (sample-data)) => {:date "2018-02-03" :worktime 460 :diff 10})
+  (fact "get-total-minutes"
+    (get-total-minutes (sample-data)) => 1010)
+  (fact "Process line produces map"
+    (process-line "2017-02-11 p1 10:00-12:00 foo") => {:time 120 :date "2017-02-11" :project-code 1}
+    (process-line "2017-02-11 p1 2h foo") => {:time 120 :date "2017-02-11" :project-code 1}
+    (process-line "") => {:time 0 :date "" :project-code nil})
+  (fact "empty records are filtered"
+    (filter-empty-rows (list
+                         {:project-code nil :time 0}
+                         {:project-code 1 :time 10})) => (list {:project-code 1 :time 10}))
   (fact "gets stats for given dates correctly"
     (get-stats-for-day
                       ["2018-02-01" "2018-02-02"]
@@ -52,4 +62,10 @@
   (fact "billed hours are calculated"
     (billed-hours (sample-project-data)) => 100)
   (fact "non-billed hours are calculated"
-    (non-billed-hours (sample-project-data)) => 10))
+    (non-billed-hours (sample-project-data)) => 10)
+  (fact "calculate percentage"
+    (billed-percentage (sample-project-data))  => "90.91")
+  (fact "project hours are counted"
+    (project-hours (list 1 2) (sample-data)) => (list
+                                                  {:project-code 1 :worktime 585}
+                                                  {:project-code 2 :worktime 425})))
