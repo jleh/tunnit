@@ -16,16 +16,16 @@
   (f/parse custom-formatter (str "2018-02-01 " time-str)))
 
 (defn get-minutes [times]
-  (t/in-minutes
-    (t/interval (get-time (get times 0)) (get-time (get times 1)))))
+  (t/in-minutes (t/interval (get-time (get times 0)) (get-time (get times 1)))))
+
+(defn parse-hour-str [hour-str]
+  (int (* 60 (read-string (clojure.string/replace hour-str #"h" "")))))
 
 (defn timelength [time-str]
   (if (boolean time-str)
     (if (nil? (index-of time-str "-"))
-      (int (* 60 (read-string (clojure.string/replace time-str #"h" ""))))
-      (let [times (split time-str #"-")]
-        (get-minutes times)))
-     0))
+      (parse-hour-str time-str)
+      (get-minutes (split time-str #"-"))) 0))
 
 (defn process-line [line]
   (let [line-date (split line #"\s+")]
