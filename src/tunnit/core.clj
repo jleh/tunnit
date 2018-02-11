@@ -41,20 +41,27 @@
 
 (defn getDayStats [date entries]
   (let [worktime (apply + (map :time (filter #(= date (:date %)) entries)))]
-    (zipmap [:worktime :diff] [worktime (- worktime 450)])))
+    (zipmap [:date :worktime :diff] [date worktime (- worktime 450)])))
 
 (defn getStatsForDays [dates entries]
   (map #(getDayStats % entries) dates))
+
+(defn print-day-stats [day-stats]
+  (doseq [item day-stats]
+    (println
+      (str (:date item) "\t" (formatTime (:worktime item)) "\t"
+           (when (neg? (:diff item)) (str "-")) (formatTime (:diff item))))))
 
 (defn readFile [filename initialDiff]
   (with-open [rdr (reader filename)]
     (let [entries (filterEmptyRows (map processLine (line-seq rdr)))
           totalMinutes (apply + (map :time entries))
           workdays (count (distinct (map :date entries)))
-          diff (formatTime (calculateDiff workdays (+ initialDiff totalMinutes)))]
+          diff (calculateDiff workdays (+ initialDiff totalMinutes))]
+        (print-day-stats (getStatsForDays (distinct (map :date entries)) entries))
+        (println)
         (println (str "Total worktime: " (formatTime totalMinutes)))
-        (println (str "Difference: " diff))
-        (println (getStatsForDays  (distinct (map :date entries)) entries)))))
+        (println (str "Difference: " (when (neg? diff) (str "-")) (formatTime diff))))))
 
 (defn -main [& args]
   (let [file (:file (:options (parse-opts args cli-options)))

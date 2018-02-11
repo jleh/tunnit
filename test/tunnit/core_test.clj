@@ -22,9 +22,17 @@
     (calculateDiff 2 870) => -30
     (calculateDiff 2 920) => 20)
   (fact "getDayStats correctly"
-    (getDayStats "2018-02-01" (sampleData)) => {:worktime 450 :diff 0}
-    (getDayStats "2018-02-02" (sampleData)) => {:worktime 100 :diff -350}
-    (getDayStats "2018-02-03" (sampleData)) => {:worktime 460 :diff 10})
+    (getDayStats "2018-02-01" (sampleData)) => {:date "2018-02-01" :worktime 450 :diff 0}
+    (getDayStats "2018-02-02" (sampleData)) => {:date "2018-02-02" :worktime 100 :diff -350}
+    (getDayStats "2018-02-03" (sampleData)) => {:date "2018-02-03" :worktime 460 :diff 10})
   (fact "gets stats for given dates correctly"
-    (getStatsForDays ["2018-02-01" "2018-02-02"] (sampleData)) => (list {:worktime 450 :diff 0}
-                                                                   {:worktime 100 :diff -350})))
+    (getStatsForDays
+                      ["2018-02-01" "2018-02-02"]
+                      (sampleData)) => (list {
+                                               :date "2018-02-01"
+                                               :worktime 450
+                                               :diff 0}
+                                             {
+                                               :date "2018-02-02" 
+                                               :worktime 100
+                                               :diff -350})))
