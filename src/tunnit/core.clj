@@ -5,8 +5,11 @@
 
 (require '[clj-time.core :as t])
 (require '[clj-time.format :as f])
+(require '[clojure.tools.cli :refer [parse-opts]])
 
 (def custom-formatter (f/formatter "yyyy-MM-dd HH:mm"))
+(def cli-options [["-f" "--file FILE" "Filename"]
+                  ["-d" "--diff DIFF" "Initial diff in minutes" :default 0]])
 
 (defn getTime [timeStr]
   (f/parse custom-formatter (str "2018-02-01 " timeStr)))
@@ -35,12 +38,16 @@
 (defn calculateDiff [workdays totalMinutes]
   (- totalMinutes (* workdays 450)))
 
-(defn readFile []
-  (with-open [rdr (reader "./data/2018-01.txt")]
+(defn readFile [filename initialDiff]
+  (with-open [rdr (reader filename)]
     (let [entries (filterEmptyRows (map processLine (line-seq rdr)))
           totalMinutes (apply + (map :time entries))
-          workdays (count (distinct (map :date entries)))]
+          workdays (count (distinct (map :date entries)))
+          diff (getTotalTime (calculateDiff workdays (+ initialDiff totalMinutes)))]
         (println (str "Total worktime: " (getTotalTime totalMinutes)))
-        (println (str "Difference: " (getTotalTime (calculateDiff workdays totalMinutes)))))))
+        (println (str "Difference: " diff)))))
 
-(defn -main [] (readFile))
+(defn -main [& args]
+  (let [file (:file (:options (parse-opts args cli-options)))
+        diff (read-string (:diff (:options (parse-opts args cli-options))))]
+    (readFile file diff)))

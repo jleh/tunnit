@@ -1,6 +1,8 @@
 (defproject tunnit "0.0.1-SNAPSHOT"
   :description "Cool new project to do things and stuff"
-  :dependencies [[org.clojure/clojure "1.9.0"] [clj-time "0.14.2"]]
+  :dependencies [[org.clojure/clojure "1.9.0"]
+                 [clj-time "0.14.2"]
+                 [org.clojure/tools.cli "0.3.5"]]
   :main tunnit.core
   :profiles {:dev {:dependencies [[midje "1.9.1"]]}
              ;; You can add dependencies that apply to `lein midje` below.
