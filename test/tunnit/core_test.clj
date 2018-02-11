@@ -12,11 +12,15 @@
 (facts "about counting times"
   (fact "timelength returns correct minutes"
     (timelength "12:00-13:00") => 60
-    (timelength "10:50-11:00") => 10)
-  (fact "Total time is count correctly"
+    (timelength "10:50-11:00") => 10
+    (timelength "7.5h") => 450
+    (timelength "2h") => 120)
+    (+ (timelength "09:20-11:00") (timelength "11:30-17:00")) => 430
+  (fact "Format time is count correctly"
     (formatTime 60) => "1 h 0 min"
     (formatTime 65) => "1 h 5 min"
-    (formatTime 50) => "0 h 50 min")
+    (formatTime 50) => "0 h 50 min"
+    (formatTime -20) => "-0 h 20 min")
   (fact "Diff is calculated correctly"
     (calculateDiff 2 900) => 0
     (calculateDiff 2 870) => -30
@@ -35,4 +39,8 @@
                                              {
                                                :date "2018-02-02" 
                                                :worktime 100
-                                               :diff -350})))
+                                               :diff -350}))
+  (fact "diff renders correctly"
+    (formatTime
+      (calculateDiff
+        1 (+ (timelength "09:20-11:00") (timelength "11:30-17:00")))) => "-0 h 20 min"))
