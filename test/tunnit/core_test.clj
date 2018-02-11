@@ -3,11 +3,14 @@
             [tunnit.core :refer :all]))
 
  (defn sample-data []
-   (list {:date "2018-02-01" :project-code "p1" :time 135}
-         {:date "2018-02-01" :project-code "p1" :time 315}
-         {:date "2018-02-02" :project-code "p1" :time 100}
-         {:date "2018-02-03" :project-code "p1" :time 450}
-         {:date "2018-02-03" :project-code "p1" :time 10}))
+   (list {:date "2018-02-01" :project-code 1 :time 135}
+         {:date "2018-02-01" :project-code 2 :time 315}
+         {:date "2018-02-02" :project-code 2 :time 100}
+         {:date "2018-02-03" :project-code 1 :time 450}
+         {:date "2018-02-03" :project-code 2 :time 10}))
+ 
+ (defn sample-project-data []
+   (list {:project-code 1 :worktime 10} {:project-code 1234 :worktime 100}))
 
 (facts "about counting times"
   (fact "timelength returns correct minutes"
@@ -43,4 +46,10 @@
   (fact "diff renders correctly"
     (format-time
       (calculate-diff
-        1 (+ (timelength "09:20-11:00") (timelength "11:30-17:00")))) => "-0 h 20 min"))
+        1 (+ (timelength "09:20-11:00") (timelength "11:30-17:00")))) => "-0 h 20 min")
+  (fact "project hours are calculated"
+    (get-project-hours 1 (sample-data)) => {:project-code 1 :worktime 585})
+  (fact "billed hours are calculated"
+    (billed-hours (sample-project-data)) => 100)
+  (fact "non-billed hours are calculated"
+    (non-billed-hours (sample-project-data)) => 10))

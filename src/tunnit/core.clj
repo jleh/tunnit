@@ -8,12 +8,12 @@
 (require '[clj-time.format :as f])
 (require '[clojure.tools.cli :refer [parse-opts]])
 
-(def custom-formatter (f/formatter "yyyy-MM-dd HH:mm"))
+(def custom-formatter (f/formatter "HH:mm"))
 (def cli-options [["-f" "--file FILE" "Filename"]
                   ["-d" "--diff DIFF" "Initial diff in minutes" :default 0]])
 
 (defn get-time [time-str]
-  (f/parse custom-formatter (str "2018-02-01 " time-str)))
+  (f/parse custom-formatter time-str))
 
 (defn get-minutes [times]
   (t/in-minutes (t/interval (get-time (get times 0)) (get-time (get times 1)))))
@@ -27,22 +27,25 @@
       (parse-hour-str time-str)
       (get-minutes (split time-str #"-"))) 0))
 
+(defn parse-project-code [project-code]
+  (read-string (clojure.string/replace project-code #"p" "")))
+
 (defn process-line [line]
-  (let [line-date (split line #"\s+")]
-    {:time (timelength (get line-date 2))
-     :date (get line-date 0)
-     :project-code (get line-date 1)}))
+  (let [line-data (split line #"\s+")]
+    {:time (timelength (get line-data 2))
+     :date (get line-data 0)
+     :project-code (if (nil? (get line-data 1)) nil (parse-project-code (get line-data 1)))}))
 
 (defn filter-empty-rows [entries]
   (filter #(false? (nil? (:project-code %))) entries))
 
-(defn time-to-str [minutes]
+(defn time->to-str [minutes]
   (str (quot minutes 60) " h " (mod minutes 60) " min"))
 
 (defn format-time [total-minutes]
   (if (neg? total-minutes)
-    (str "-" (time-to-str (Math/abs total-minutes)))
-    (time-to-str total-minutes)))
+    (str "-" (time->to-str (Math/abs total-minutes)))
+    (time->to-str total-minutes)))
 
 (defn calculate-diff [workdays total-minutes]
   (- total-minutes (* workdays 450)))
@@ -59,14 +62,34 @@
     (println
       (str (:date item) "\t" (format-time (:worktime item)) "\t" (format-time (:diff item))))))
 
+(defn get-project-hours [project-code entries]
+  (zipmap [:project-code :worktime]
+          [project-code (apply + (map :time (filter #(= project-code (:project-code %)) entries)))]))
+
+(defn project-hours [project-codes entries]
+  (map #(get-project-hours % entries) project-codes))
+
+(defn billed-hours [projects]
+  (apply + (map :worktime (filter #(< 1000 (:project-code %)) projects))))
+
+(defn non-billed-hours [projects]
+  (apply + (map :worktime (filter #(> 1000 (:project-code %)) projects))))
+
+(defn billed-percentage [projects]
+  (let [billed (billed-hours projects)
+        non-billed (non-billed-hours projects)]
+    (format "%.2f" (float (* 100 (/ billed (+ billed non-billed)))))))
+
 (defn read-file [filename initial-diff]
   (with-open [rdr (reader filename)]
     (let [entries (filter-empty-rows (map process-line (line-seq rdr)))
           total-minutes (apply + (map :time entries))
           workdays (count (distinct (map :date entries)))
-          diff (+ initial-diff (calculate-diff workdays total-minutes))]
+          diff (+ initial-diff (calculate-diff workdays total-minutes))
+          projects (project-hours (distinct (map :project-code entries)) entries)]
         (print-day-stats (get-stats-for-day (distinct (map :date entries)) entries))
         (println)
+        (println (str "Billed hours: " (billed-percentage projects)) " %")
         (println (str "Total worktime: " (format-time total-minutes)))
         (println (str "Difference: " (format-time diff) " (" diff " min)")))))
 
