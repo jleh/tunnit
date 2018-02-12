@@ -90,7 +90,7 @@
           workdays (count (distinct (map :date entries)))
           diff (+ initial-diff (calculate-diff workdays total-minutes))
           projects (project-hours (distinct (map :project-code entries)) entries)]
-        (print-day-stats (get-stats-for-day workdays entries))
+        (print-day-stats (get-stats-for-day (count (distinct (map :date entries))) entries))
         (println)
         (println (str "Billed hours: " (billed-percentage projects)) " %")
         (println (str "Total worktime: " (format-time total-minutes)))
