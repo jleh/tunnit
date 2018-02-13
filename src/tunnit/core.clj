@@ -83,14 +83,19 @@
 (defn get-total-minutes [entries]
   (apply + (map :time entries)))
 
+(defn get-projects [entries]
+  (sort #(compare (:project-code %1) (:project-code %2)) (project-hours (distinct (map :project-code entries)) entries)))
+
 (defn read-file [filename initial-diff]
   (with-open [rdr (reader filename)]
     (let [entries (filter-empty-rows (map process-line (line-seq rdr)))
           total-minutes (get-total-minutes entries)
           workdays (count (distinct (map :date entries)))
           diff (+ initial-diff (calculate-diff workdays total-minutes))
-          projects (project-hours (distinct (map :project-code entries)) entries)]
+          projects (get-projects entries)]
         (print-day-stats (get-stats-for-day (distinct (map :date entries)) entries))
+        (println)
+        (doseq [row (map #(str "p" (:project-code %) "\t" (format-time (:worktime %))) projects)] (println row))
         (println)
         (println (str "Billed hours: " (billed-percentage projects)) " %")
         (println (str "Total worktime: " (format-time total-minutes)))
