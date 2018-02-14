@@ -19,7 +19,9 @@
   (t/in-minutes (t/interval (get-time (get times 0)) (get-time (get times 1)))))
 
 (defn parse-hour-str [hour-str]
-  (int (* 60 (read-string (clojure.string/replace hour-str #"h" "")))))
+  (let [hours (re-find #"\d*\.?\d*(?=h)" hour-str)
+        minutes (re-find #"\d*\.?\d*(?=m)" hour-str)]
+  (int (+ (* (if (nil? hours) 0 (read-string hours)) 60) (if (nil? minutes) 0 (read-string minutes))))))
 
 (defn timelength [time-str]
   (if (boolean time-str)
