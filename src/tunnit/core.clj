@@ -33,10 +33,11 @@
   (read-string (clojure.string/replace project-code #"p" "")))
 
 (defn process-line [line]
-  (let [line-data (split line #"\s+")]
-    {:time (timelength (get line-data 2))
-     :date (get line-data 0)
-     :project-code (if (nil? (get line-data 1)) nil (parse-project-code (get line-data 1)))}))
+  (if (or (= 0 (count line)) (= (subs line 0 1) "#")) {:project-code nil} ; filter commented & empty rows
+    (let [line-data (split line #"\s+")]
+      {:time (timelength (get line-data 2))
+       :date (get line-data 0)
+       :project-code (if (nil? (get line-data 1)) nil (parse-project-code (get line-data 1)))})))
 
 (defn filter-empty-rows [entries]
   (filter #(false? (nil? (:project-code %))) entries))

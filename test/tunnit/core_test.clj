@@ -37,7 +37,8 @@
   (fact "Process line produces map"
     (process-line "2017-02-11 p1 10:00-12:00 foo") => {:time 120 :date "2017-02-11" :project-code 1}
     (process-line "2017-02-11 p1 2h foo") => {:time 120 :date "2017-02-11" :project-code 1}
-    (process-line "") => {:time 0 :date "" :project-code nil})
+    (process-line "") => {:project-code nil}
+    (process-line "# comment") => {:project-code nil})
   (fact "empty records are filtered"
     (filter-empty-rows (list
                          {:project-code nil :time 0}
