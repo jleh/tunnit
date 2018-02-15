@@ -4,8 +4,12 @@ Read and count hours from tracking files.
 
 File format `[date] [project code] [hours] [comment]`
 
-Example row
-`2018-02-01  p1345   10:10-12:00 Working on project`
+Example rows for supported formats
+```
+2018-02-01  p1234   10:10-12:00		Working on project
+2018-02-01  p1234   7.5h 			Working on project
+2018-02-01  p1234   7h30m 			Working on project
+```
 
 ## Run
 ```
