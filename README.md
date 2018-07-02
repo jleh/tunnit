@@ -25,7 +25,7 @@ If you have Java JRE installed you can run app without installing Clojure or Lei
 Get latest jar from [releases](https://github.com/jleh/tunnit/releases).
 
 Run:
-`java -jar tunnit.jar -f 2018-01.txt -d 0`
+`java -jar tunnit.jar -f 2018-01.txt`
 
 ## How to run the tests
 

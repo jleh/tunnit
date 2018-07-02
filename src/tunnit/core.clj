@@ -10,7 +10,9 @@
 
 (def custom-formatter (f/formatter "HH:mm"))
 (def cli-options [["-f" "--file FILE" "Filename"]
-                  ["-d" "--diff DIFF" "Initial diff in minutes" :default 0]])
+                  ["-d" "--diff DIFF" "Initial diff in minutes"
+                   :default 0
+                   :parse-fn #(Integer/parseInt %)]])
 
 (defn get-time [time-str]
   (f/parse custom-formatter time-str))
@@ -106,11 +108,14 @@
         (println)
         (doseq [row (map project-hours-total projects)] (println row))
         (println)
-        (println (str "Billed hours: " (billed-percentage projects)) " %")
+        (println (str "Billed hours: " (format-time (billed-hours projects))))
+        (println (str "Billed %: " (billed-percentage projects)) "% ")
         (println (str "Total worktime: " (format-time total-minutes)))
         (println (str "Difference: " (format-time diff) " (" diff " min)")))))
 
 (defn -main [& args]
   (let [file (:file (:options (parse-opts args cli-options)))
-        diff (read-string (:diff (:options (parse-opts args cli-options))))]
-    (read-file file diff)))
+        diff (:diff (:options (parse-opts args cli-options)))]
+    (if (clojure.string/blank? file)
+      (println "Provide filename with -f option")
+      (read-file file diff))))
