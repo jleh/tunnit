@@ -114,8 +114,7 @@
         (println (str "Difference: " (format-time diff) " (" diff " min)")))))
 
 (defn -main [& args]
-  (let [file (:file (:options (parse-opts args cli-options)))
-        diff (:diff (:options (parse-opts args cli-options)))]
+  (let [{file :file diff :diff} (:options (parse-opts args cli-options))]
     (if (clojure.string/blank? file)
       (println "Provide filename with -f option")
       (read-file file diff))))
