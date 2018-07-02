@@ -17,7 +17,15 @@ Example rows for supported formats
 -d NUMBER       Initial diff in minutes
 ```
 
-`lein run -d 2018-01.txt -d 0`
+`lein run -f 2018-01.txt -d 0`
+
+### Run standalone version
+If you have Java JRE installed you can run app without installing Clojure or Leiningen.
+
+Get latest jar from [releases](https://github.com/jleh/tunnit/releases).
+
+Run:
+`java -jar tunnit.jar -f 2018-01.txt -d 0`
 
 ## How to run the tests
 
