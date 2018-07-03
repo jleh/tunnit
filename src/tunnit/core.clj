@@ -7,6 +7,7 @@
 (require '[clj-time.core :as t])
 (require '[clj-time.format :as f])
 (require '[clojure.tools.cli :refer [parse-opts]])
+(require '[clojure.java.io :as io])
 
 (def custom-formatter (f/formatter "HH:mm"))
 (def cli-options [["-f" "--file FILE" "Filename"]
@@ -36,8 +37,14 @@
 (defn parse-project-code [project-code]
   (read-string (clojure.string/replace project-code #"p" "")))
 
+(defn empty-line? [line]
+  (= 0 (count line)))
+
+(defn comment? [line]
+  (= (subs line 0 1) "#"))
+
 (defn empty-or-comment? [line]
-  (or (= 0 (count line)) (= (subs line 0 1) "#")))
+  (or (empty-line? line) (comment? line)))
 
 (defn process-line [line]
   (if (empty-or-comment? line) {:project-code nil}
@@ -103,11 +110,8 @@
 (defn count-workdays [entries]
   (count (distinct (map :date entries))))
 
-(defn valid-filepath? [filename diff func]
-  "Check if filename is not empty. If it is stop execution and print help text."
-  (if (clojure.string/blank? filename)
-    (println "Provide filename with -f option")
-    (func filename diff)))
+(defn file-exists? [filename]
+  (.exists (io/as-file filename)))
 
 (defn read-file [filename initial-diff]
   "Reads file and print statistics."
@@ -128,4 +132,6 @@
 
 (defn -main [& args]
   (let [{file :file diff :diff} (:options (parse-opts args cli-options))]
-    (valid-filepath? file diff read-file)))
+    (if (file-exists? file)
+      (read-file file diff)
+      (println "Provide existing file with -f option"))))
