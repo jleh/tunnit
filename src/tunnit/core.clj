@@ -18,6 +18,7 @@
   (f/parse custom-formatter time-str))
 
 (defn get-minutes [times]
+  "Get minutes between two time values"
   (t/in-minutes (t/interval (get-time (get times 0)) (get-time (get times 1)))))
 
 (defn parse-hour-str [hour-str]
@@ -26,6 +27,7 @@
   (int (+ (* (if (nil? hours) 0 (read-string hours)) 60) (if (nil? minutes) 0 (read-string minutes))))))
 
 (defn timelength [time-str]
+  "Get worktime for row in minutes. Two different format types are supported: 5h30min === 10:00-15:30"
   (if (boolean time-str)
     (if (nil? (index-of time-str "-"))
       (parse-hour-str time-str)
@@ -34,14 +36,18 @@
 (defn parse-project-code [project-code]
   (read-string (clojure.string/replace project-code #"p" "")))
 
+(defn empty-or-comment? [line]
+  (or (= 0 (count line)) (= (subs line 0 1) "#")))
+
 (defn process-line [line]
-  (if (or (= 0 (count line)) (= (subs line 0 1) "#")) {:project-code nil} ; filter commented & empty rows
+  (if (empty-or-comment? line) {:project-code nil}
     (let [line-data (split line #"\s+")]
       {:time (timelength (get line-data 2))
        :date (get line-data 0)
        :project-code (if (nil? (get line-data 1)) nil (parse-project-code (get line-data 1)))})))
 
 (defn filter-empty-rows [entries]
+  "Filter entries that have nil as project code"
   (filter #(false? (nil? (:project-code %))) entries))
 
 (defn time->to-str [minutes]
@@ -97,7 +103,14 @@
 (defn count-workdays [entries]
   (count (distinct (map :date entries))))
 
+(defn valid-filepath? [filename diff func]
+  "Check if filename is not empty. If it is stop execution and print help text."
+  (if (clojure.string/blank? filename)
+    (println "Provide filename with -f option")
+    (func filename diff)))
+
 (defn read-file [filename initial-diff]
+  "Reads file and print statistics."
   (with-open [rdr (reader filename)]
     (let [entries (filter-empty-rows (map process-line (line-seq rdr)))
           total-minutes (get-total-minutes entries)
@@ -115,6 +128,4 @@
 
 (defn -main [& args]
   (let [{file :file diff :diff} (:options (parse-opts args cli-options))]
-    (if (clojure.string/blank? file)
-      (println "Provide filename with -f option")
-      (read-file file diff))))
+    (valid-filepath? file diff read-file)))
