@@ -104,8 +104,11 @@
 (defn get-projects [entries]
   (sort #(compare (:project-code %1) (:project-code %2)) (project-hours (distinct (map :project-code entries)) entries)))
 
-(defn project-hours-total [project]
-  (str "p" (:project-code project) "\t" (format-time (:worktime project))))
+(defn project-hours-percentage [project total-minutes]
+  (format "%.2f" (float (* 100 (/ (:worktime project) total-minutes)))))
+
+(defn project-hours-row [project, total-minutes]
+  (str "p" (:project-code project) "\t" (format-time (:worktime project)) "\t" (project-hours-percentage project total-minutes) " %"))
 
 (defn count-workdays [entries]
   (count (distinct (map :date entries))))
@@ -123,7 +126,7 @@
           projects (get-projects entries)]
         (print-day-stats (get-stats-for-day (distinct (map :date entries)) entries))
         (println)
-        (doseq [row (map project-hours-total projects)] (println row))
+        (doseq [row (map #(project-hours-row % total-minutes) projects)] (println row))
         (println)
         (println (str "Billed hours: " (format-time (billed-hours projects))))
         (println (str "Billed %: " (billed-percentage projects)) "% ")
