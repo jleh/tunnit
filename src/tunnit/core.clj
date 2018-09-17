@@ -24,10 +24,18 @@
   "Get minutes between two time values"
   (t/in-minutes (t/interval (get-time (get times 0)) (get-time (get times 1)))))
 
+(defn parse-hours [hour-str]
+  (let [hours (re-find #"\d*\.?\d*(?=h)" hour-str)]
+    (if (nil? hours) 0 (read-string hours))))
+
+(defn parse-minutes [hour-str]
+  (let [minutes (re-find #"\d*\.?\d*(?=m)" hour-str)]
+    (if (nil? minutes) 0 (read-string minutes))))
+
 (defn parse-hour-str [hour-str]
-  (let [hours (re-find #"\d*\.?\d*(?=h)" hour-str)
-        minutes (re-find #"\d*\.?\d*(?=m)" hour-str)]
-  (int (+ (* (if (nil? hours) 0 (read-string hours)) 60) (if (nil? minutes) 0 (read-string minutes))))))
+  (let [hours (parse-hours hour-str)
+        minutes (parse-minutes hour-str)]
+  (int (+ (* hours 60) minutes))))
 
 (defn timelength [time-str]
   "Get worktime for row in minutes. Two different format types are supported: 5h30min === 10:00-15:30"
