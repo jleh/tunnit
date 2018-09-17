@@ -9,6 +9,8 @@
 (require '[clojure.tools.cli :refer [parse-opts]])
 (require '[clojure.java.io :as io])
 
+(def saldovapaa 909)
+
 (def custom-formatter (f/formatter "HH:mm"))
 (def cli-options [["-f" "--file FILE" "Filename"]
                   ["-d" "--diff DIFF" "Initial diff in minutes"
@@ -46,12 +48,20 @@
 (defn empty-or-comment? [line]
   (or (empty-line? line) (comment? line)))
 
+(defn get-project-code [line-data]
+  (if (nil? (get line-data 1)) nil (parse-project-code (get line-data 1))))
+
+(defn remove-saldovapaa-hours [hours project-code]
+  "Removes hours with saldovapaa project code so difference calculating works correctly"
+  (if (= project-code saldovapaa) (* 0 hours) hours))
+
 (defn process-line [line]
   (if (empty-or-comment? line) {:project-code nil}
-    (let [line-data (split line #"\s+")]
-      {:time (timelength (get line-data 2))
+    (let [line-data (split line #"\s+")
+          project-code (get-project-code line-data)]
+      {:time (remove-saldovapaa-hours (timelength (get line-data 2)) project-code)
        :date (get line-data 0)
-       :project-code (if (nil? (get line-data 1)) nil (parse-project-code (get line-data 1)))})))
+       :project-code project-code})))
 
 (defn filter-empty-rows [entries]
   "Filter entries that have nil as project code"
