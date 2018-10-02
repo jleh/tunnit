@@ -134,8 +134,11 @@
 (defn file-exists? [filename]
   (.exists (io/as-file filename)))
 
+(defn is-directory? [filename]
+  (.isDirectory (io/as-file filename)))
+
 (defn read-file [filename initial-diff]
-  "Reads file and print statistics."
+  "Reads file, prints statistics and returns diff in minutes."
   (with-open [rdr (reader filename)]
     (let [entries (filter-empty-rows (map process-line (line-seq rdr)))
           total-minutes (get-total-minutes entries)
@@ -149,10 +152,38 @@
         (println (str "Billed hours: " (format-time (billed-hours projects))))
         (println (str "Billed %: " (billed-percentage projects)) "% ")
         (println (str "Total worktime: " (format-time total-minutes)))
-        (println (str "Difference: " (format-time diff) " (" diff " min)")))))
+        (println (str "Difference: " (format-time diff) " (" diff " min)"))
+        diff)))
+
+(defn print-total-diff [total-diff]
+  (newline)
+  (println (str "Total difference: " (format-time total-diff) " (" total-diff " min)")))
+
+(defn read-files [files initial-diff]
+  (print-total-diff
+    (reduce + initial-diff
+      (for [file files]
+        (read-file file 0)))))
+
+(defn read-dir [dir-name]
+  (file-seq (io/file dir-name)))
+
+(defn get-file-paths [files]
+  (map #(.getPath %) files))
+
+(defn only-files [files]
+  (filter #(.isFile %) files))
+
+(defn read-dir-files [dir-name initial-diff]
+  (read-files
+    (get-file-paths
+      (only-files
+        (read-dir dir-name))) initial-diff))
 
 (defn -main [& args]
   (let [{file :file diff :diff} (:options (parse-opts args cli-options))]
     (if (file-exists? file)
-      (read-file file diff)
-      (println "Provide existing file with -f option"))))
+        (if (is-directory? file)
+          (read-dir-files file diff)
+          (read-file file diff))
+      (println "Provide existing file or directory with -f option"))))
