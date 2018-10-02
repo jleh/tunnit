@@ -13,11 +13,12 @@ Example rows for supported formats
 
 ## Run
 ```
--f FILENAME     Hour files to read
+-f FILENAME     Hour file or folder to read
 -d NUMBER       Initial diff in minutes
 ```
 
 `lein run -f 2018-01.txt -d 0`
+`lein run -f hours-folder -d 0`
 
 ### Run standalone version
 If you have Java JRE installed you can run app without installing Clojure or Leiningen.
@@ -25,7 +26,7 @@ If you have Java JRE installed you can run app without installing Clojure or Lei
 Get latest jar from [releases](https://github.com/jleh/tunnit/releases).
 
 Run:
-`java -jar tunnit.jar -f 2018-01.txt`
+`java -jar tunnit.jar -d 0 -f 2018-01.txt`
 
 ## How to run the tests
 
