@@ -13,11 +13,12 @@ Example rows for supported formats
 
 ## Run
 ```
--f FILENAME     Hour files to read
--d NUMBER       Initial diff in minutes
+-f FILENAME     Hour file or folder to read
+-d NUMBER       Initial diff in minutes (optional)
 ```
 
-`lein run -f 2018-01.txt -d 0`
+`lein run -f 2018-01.txt -d 30`
+`lein run -f hours-folder`
 
 ### Run standalone version
 If you have Java JRE installed you can run app without installing Clojure or Leiningen.
