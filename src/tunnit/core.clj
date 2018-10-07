@@ -86,13 +86,12 @@
     (get line-data 1)))
 
 (defn replace-missing-values [line-data]
-  [
-   (get-line-date line-data)
+  [(get-line-date line-data)
    (get-line-project-code line-data)
-    (if (is-missing-project-code? line-data)
-      (get line-data 1)
-      (get line-data 2))
-    ])
+   (if (is-missing-project-code? line-data)
+     (get line-data 1)
+     (get line-data 2))
+   ])
 
 (defn get-line-values [line]
   (if (empty-or-comment? line) {:project-code nil}
