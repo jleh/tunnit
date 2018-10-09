@@ -1,5 +1,6 @@
 (ns tunnit.core
-  (:gen-class))
+  (:gen-class)
+  (:require [clojure.string :as str]))
 
 (use 'clojure.java.io)
 (use '[clojure.string :only (split index-of)])
@@ -16,6 +17,8 @@
                   ["-d" "--diff DIFF" "Initial diff in minutes"
                    :default 0
                    :parse-fn #(Integer/parseInt %)]])
+
+(def previous-line (atom {}))
 
 (defn get-time [time-str]
   (f/parse custom-formatter time-str))
@@ -45,7 +48,7 @@
       (get-minutes (split time-str #"-"))) 0))
 
 (defn parse-project-code [project-code]
-  (read-string (clojure.string/replace project-code #"p" "")))
+  (read-string (str/replace project-code #"p" "")))
 
 (defn empty-line? [line]
   (= 0 (count line)))
@@ -63,13 +66,43 @@
   "Removes hours with saldovapaa project code so difference calculating works correctly"
   (if (= project-code saldovapaa) (* 0 hours) hours))
 
-(defn process-line [line]
+(defn is-project-code? [str]
+  (str/starts-with? str "p"))
+
+(defn is-missing-date? [line-data]
+  (str/blank? (get line-data 0)))
+
+(defn is-missing-project-code? [line-data]
+  (or (str/blank? (get line-data 1)) (not(is-project-code? (get line-data 1)))))
+
+(defn get-line-date [line-data]
+  (if (is-missing-date? line-data)
+    (:date @previous-line)
+    (get line-data 0)))
+
+(defn get-line-project-code [line-data]
+  (if (is-missing-project-code? line-data)
+    (:project-code @previous-line)
+    (get line-data 1)))
+
+(defn replace-missing-values [line-data]
+  [(get-line-date line-data)
+   (get-line-project-code line-data)
+   (if (is-missing-project-code? line-data)
+     (get line-data 1)
+     (get line-data 2))
+   ])
+
+(defn get-line-values [line]
   (if (empty-or-comment? line) {:project-code nil}
-    (let [line-data (split line #"\s+")
+    (let [line-data (replace-missing-values (split line #"\s+"))
           project-code (get-project-code line-data)]
       {:time (remove-saldovapaa-hours (timelength (get line-data 2)) project-code)
        :date (get line-data 0)
        :project-code project-code})))
+
+(defn process-line[line]
+  (swap! previous-line merge (get-line-values line)))
 
 (defn filter-empty-rows [entries]
   "Filter entries that have nil as project code"
