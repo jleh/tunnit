@@ -11,6 +11,11 @@ Example rows for supported formats
 2018-02-01  p1234   7h30m 			Working on project
 ```
 
+To count extra days properly (such as saturdays etc.) start the comment with "extra-day"
+```
+2018-02-01  p1234   7h30m 			extra-day staruday at conference
+```
+
 ## Run
 ```
 -f FILENAME     Hour file or folder to read
