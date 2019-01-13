@@ -13,7 +13,7 @@ Example rows for supported formats
 
 To count extra days properly (such as saturdays etc.) start the comment with "extra-day"
 ```
-2018-02-01  p1234   7h30m 			extra-day staruday at conference
+2018-02-01  p1234   7h30m 			extra-day saturday at conference
 ```
 
 ## Run
