@@ -91,6 +91,7 @@
    (if (is-missing-project-code? line-data)
      (get line-data 1)
      (get line-data 2))
+    (get line-data 3)
    ])
 
 (defn get-line-values [line]
@@ -99,7 +100,8 @@
           project-code (get-project-code line-data)]
       {:time (remove-saldovapaa-hours (timelength (get line-data 2)) project-code)
        :date (get line-data 0)
-       :project-code project-code})))
+       :project-code project-code
+       :comment (get line-data 3)})))
 
 (defn process-line[line]
   (swap! previous-line merge (get-line-values line)))
@@ -119,9 +121,13 @@
 (defn calculate-diff [workdays total-minutes]
   (- total-minutes (* workdays 450)))
 
+(defn is-extra-day? [entry]
+  (boolean (re-find #"extra-day" (:comment entry))) )
+
 (defn get-day-stats [date entries]
-  (let [worktime (apply + (map :time (filter #(= date (:date %)) entries)))]
-    (zipmap [:date :worktime :diff] [date worktime (- worktime 450)])))
+  (let [worktime (apply + (map :time (filter #(= date (:date %)) entries)))
+        extra-day? (some is-extra-day? (filter #(= date (:date %)) entries))]
+    (zipmap [:date :extra-day? :worktime :diff] [date extra-day? worktime (if extra-day? worktime (- worktime 450))])))
 
 (defn get-stats-for-day [dates entries]
   (map #(get-day-stats % entries) dates))
@@ -129,7 +135,7 @@
 (defn print-day-stats [day-stats]
   (doseq [item day-stats]
     (println
-      (str (:date item) "\t" (format-time (:worktime item)) "\t" (format-time (:diff item))))))
+      (str (:date item) "\t" (format-time (:worktime item)) "\t" (format-time (:diff item)) (if (:extra-day? item) "\t extra day")))))
 
 (defn get-project-hours [project-code entries]
   (zipmap [:project-code :worktime]
@@ -164,6 +170,9 @@
 (defn count-workdays [entries]
   (count (distinct (map :date entries))))
 
+(defn count-extra-days [entries]
+  (count (filter is-extra-day? entries)))
+
 (defn file-exists? [filename]
   (.exists (io/as-file filename)))
 
@@ -176,7 +185,8 @@
     (let [entries (filter-empty-rows (map process-line (line-seq rdr)))
           total-minutes (get-total-minutes entries)
           workdays (count-workdays entries)
-          diff (+ initial-diff (calculate-diff workdays total-minutes))
+          extra-days (count-extra-days entries)
+          diff (+ initial-diff (calculate-diff (- workdays extra-days) total-minutes))
           projects (get-projects entries)]
         (print-day-stats (get-stats-for-day (distinct (map :date entries)) entries))
         (println)
@@ -185,6 +195,7 @@
         (println (str "Billed hours: " (format-time (billed-hours projects))))
         (println (str "Billed %: " (billed-percentage projects)) "% ")
         (println (str "Total worktime: " (format-time total-minutes)))
+        (println (str "Extra days: " extra-days))
         (println (str "Difference: " (format-time diff) " (" diff " min)"))
         diff)))
 
